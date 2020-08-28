@@ -5,24 +5,18 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.maps.MapObject;
-import com.badlogic.gdx.maps.objects.RectangleMapObject;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
-import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.physics.box2d.Body;
-import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
-import com.badlogic.gdx.physics.box2d.FixtureDef;
-import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.troofy.mario.MarioBros;
 import com.troofy.mario.scene.Hud;
 import com.troofy.mario.sprite.Mario;
+import com.troofy.mario.tools.B2WorldCreator;
 
 public class PlayScreen implements Screen {
 
@@ -54,75 +48,8 @@ public class PlayScreen implements Screen {
         world = new World(new Vector2(0,-10 ), true);
         b2dr = new Box2DDebugRenderer();
 
-        BodyDef  bdef = new BodyDef();
-        PolygonShape shape = new PolygonShape();
-        FixtureDef fdef = new FixtureDef();
-        Body body;
-
         marioPlayer = new Mario(world);
-
-        for(MapObject mapObj : map.getLayers().get(2).getObjects().getByType(RectangleMapObject.class)){
-            Rectangle rect = ((RectangleMapObject)mapObj).getRectangle();
-            bdef.type = BodyDef.BodyType.StaticBody;
-            bdef.position.set((rect.getX() + rect.getWidth()/2)/MarioBros.PPM , (rect.getY() + rect.getHeight()/2)/MarioBros.PPM);
-
-            body = world.createBody(bdef);
-
-            shape.setAsBox((rect.getWidth()/2)/MarioBros.PPM, (rect.getHeight()/2)/MarioBros.PPM);
-            fdef.shape = shape;
-            body.createFixture(fdef);
-        }
-
-        //create ground bodies and fixtures
-        for(MapObject mapObj : map.getLayers().get(2).getObjects().getByType(RectangleMapObject.class)){
-            Rectangle rect = ((RectangleMapObject)mapObj).getRectangle();
-            bdef.type = BodyDef.BodyType.StaticBody;
-            bdef.position.set((rect.getX() + rect.getWidth()/2)/MarioBros.PPM , (rect.getY() + rect.getHeight()/2)/MarioBros.PPM);
-
-            body = world.createBody(bdef);
-
-            shape.setAsBox((rect.getWidth()/2)/MarioBros.PPM, (rect.getHeight()/2)/MarioBros.PPM);
-            fdef.shape = shape;
-            body.createFixture(fdef);
-        }
-
-        //create pipe bodies and fixtures
-        for(MapObject mapObj : map.getLayers().get(3).getObjects().getByType(RectangleMapObject.class)){
-            Rectangle rect = ((RectangleMapObject)mapObj).getRectangle();
-            bdef.type = BodyDef.BodyType.StaticBody;
-            bdef.position.set((rect.getX() + rect.getWidth()/2)/MarioBros.PPM , (rect.getY() + rect.getHeight()/2)/MarioBros.PPM);
-
-            body = world.createBody(bdef);
-
-            shape.setAsBox((rect.getWidth()/2)/MarioBros.PPM, (rect.getHeight()/2)/MarioBros.PPM);
-            fdef.shape = shape;
-            body.createFixture(fdef);
-        }
-
-        //create brick bodies and fixtures
-        for(MapObject mapObj : map.getLayers().get(5).getObjects().getByType(RectangleMapObject.class)){
-            Rectangle rect = ((RectangleMapObject)mapObj).getRectangle();
-            bdef.type = BodyDef.BodyType.StaticBody;
-            bdef.position.set((rect.getX() + rect.getWidth()/2)/MarioBros.PPM , (rect.getY() + rect.getHeight()/2)/MarioBros.PPM);
-
-            body = world.createBody(bdef);
-
-            shape.setAsBox((rect.getWidth()/2)/MarioBros.PPM, (rect.getHeight()/2)/MarioBros.PPM);
-            fdef.shape = shape;
-            body.createFixture(fdef);
-        }
-        //create coin bodies and fixtures
-        for(MapObject mapObj : map.getLayers().get(4).getObjects().getByType(RectangleMapObject.class)){
-            Rectangle rect = ((RectangleMapObject)mapObj).getRectangle();
-            bdef.type = BodyDef.BodyType.StaticBody;
-            bdef.position.set((rect.getX() + rect.getWidth()/2)/MarioBros.PPM , (rect.getY() + rect.getHeight()/2)/MarioBros.PPM);
-
-            body = world.createBody(bdef);
-
-            shape.setAsBox((rect.getWidth()/2)/MarioBros.PPM, (rect.getHeight()/2)/MarioBros.PPM);
-            fdef.shape = shape;
-            body.createFixture(fdef);
-        }
+        B2WorldCreator b2WorldCreator = new B2WorldCreator(world, map);
     }
 
     @Override
@@ -198,6 +125,11 @@ public class PlayScreen implements Screen {
 
     @Override
     public void dispose() {
+        map.dispose();
+        mapRenderer.dispose();
+        world.dispose();
+        b2dr.dispose();
+        hud.dispose();
 
     }
 }
