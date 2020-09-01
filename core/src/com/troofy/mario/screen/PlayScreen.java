@@ -5,6 +5,7 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
@@ -32,9 +33,12 @@ public class PlayScreen implements Screen {
     private World world;
     private Box2DDebugRenderer b2dr;
 
+    private TextureAtlas atlas;
+
 
 
     public PlayScreen(final MarioBros game){
+        this.atlas = new TextureAtlas("Mario_and_enemies.atlas");
         this.game = game;
 
         gameCam = new OrthographicCamera();
@@ -46,9 +50,10 @@ public class PlayScreen implements Screen {
 
         gameCam.position.set(gameViewPort.getWorldWidth()/2, gameViewPort.getWorldHeight()/2, 0);
         world = new World(new Vector2(0,-10 ), true);
+        marioPlayer = new Mario(world, this);
+
         b2dr = new Box2DDebugRenderer();
 
-        marioPlayer = new Mario(world);
         B2WorldCreator b2WorldCreator = new B2WorldCreator(world, map);
     }
 
@@ -76,17 +81,22 @@ public class PlayScreen implements Screen {
         //handle user input first
         handleInput(deltaTime);
 
+        marioPlayer.update(deltaTime);
+
         world.step(1/60f, 6,2);
-        gameCam.update();
         gameCam.position.x = marioPlayer.getBox2body().getPosition().x;
+        gameCam.update();
+
         mapRenderer.setView(gameCam);
 
     }
 
     @Override
-    public void render(float delta) {
+    public void render(float deltaTime) {
         //separate our update logic from render method
-        update(delta);
+        update(deltaTime);
+
+        marioPlayer.update(deltaTime);
 
         //clear the game screen with black
         Gdx.gl.glClearColor(0,0,0,1);
@@ -97,6 +107,11 @@ public class PlayScreen implements Screen {
 
         //render our Box2dDebugLines
         b2dr.render(world,gameCam.combined);
+
+        game.getBatch().setProjectionMatrix(gameCam.combined);
+        game.getBatch().begin();
+        marioPlayer.draw(game.getBatch());
+        game.getBatch().end();
 
         //set our batch to now draw what the HUD camera sees
         game.getBatch().setProjectionMatrix(hud.stage.getCamera().combined);
@@ -131,5 +146,9 @@ public class PlayScreen implements Screen {
         b2dr.dispose();
         hud.dispose();
 
+    }
+
+    public TextureAtlas getAtlas() {
+        return atlas;
     }
 }
